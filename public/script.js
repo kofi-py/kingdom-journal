@@ -69,6 +69,12 @@ saveBtn.addEventListener("click", () => {
 
   journalEntry.value = "";
   loadJournalEntries();
+  // Trigger confetti effect
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { y: 0.6 },
+  });
 });
 
 // === Load Verse of the Day ===
@@ -117,7 +123,8 @@ function loadDailyDevotional() {
       (new Date() - new Date(new Date().getFullYear(), 0, 0)) /
         (1000 * 60 * 60 * 24)
     ) % devotionals.length;
-  document.getElementById("devotionalText").textContent = devotionals[index];
+  const devotionalText = document.getElementById("devotionalText");
+  typeWriterEffect(devotionalText, devotionals[index]);
 }
 
 // === Load Devotional Thoughts ===
