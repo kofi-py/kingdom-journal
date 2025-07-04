@@ -43,6 +43,11 @@ const submitThought = document.getElementById("submitThought");
 const nameInput = document.getElementById("nameInput");
 const thoughtInput = document.getElementById("thoughtInput");
 const thoughtsList = document.getElementById("thoughtsList");
+const signupBtn = document.getElementById("signupBtn");
+const loginBtn = document.getElementById("loginBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const emailInput = document.getElementById("email");
+const passwordInput = document.getElementById("password");
 
 // === Authentication Functions ===
 function typeWriterEffect(element, text, speed = 50) {
@@ -56,6 +61,147 @@ function typeWriterEffect(element, text, speed = 50) {
     }
   }
   type();
+}
+
+function showWelcome(user) {
+  const welcomeBanner = document.getElementById("welcomeBanner");
+  const userDisplayName = document.getElementById("userDisplayName");
+  const userPic = document.getElementById("userPic");
+
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const signupBtn = document.getElementById("signupBtn");
+  const loginBtn = document.getElementById("loginBtn");
+  const googleBtn = document.getElementById("googleBtn");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  if (user) {
+    userDisplayName.textContent = `👋 Welcome, ${
+      user.displayName || user.email
+    }!`;
+    welcomeBanner.classList.remove("hidden");
+
+    if (user.photoURL && userPic) {
+      userPic.src = user.photoURL;
+      userPic.classList.remove("hidden");
+    } else {
+      userPic.classList.add("hidden");
+    }
+
+    // Hide inputs and buttons
+    emailInput.classList.add("hidden");
+    passwordInput.classList.add("hidden");
+    signupBtn.classList.add("hidden");
+    loginBtn.classList.add("hidden");
+    googleBtn.classList.add("hidden");
+    logoutBtn.classList.remove("hidden");
+  } else {
+    welcomeBanner.classList.add("hidden");
+    userDisplayName.textContent = "";
+    userPic.classList.add("hidden");
+
+    // Show inputs and buttons
+    emailInput.classList.remove("hidden");
+    passwordInput.classList.remove("hidden");
+    signupBtn.classList.remove("hidden");
+    loginBtn.classList.remove("hidden");
+    googleBtn.classList.remove("hidden");
+    logoutBtn.classList.add("hidden");
+  }
+}
+googleBtn.addEventListener("click", () => {
+  const provider = new GoogleAuthProvider();
+  signInWithPopup(auth, provider)
+    .then((result) => {
+      const user = result.user;
+
+      // ✅ Use your helper function
+      showWelcome(user); // ← This makes the UI show/hide stuff properly
+
+      // 🎉 Optional: scroll to journal section
+      document
+        .getElementById("journalEntry")
+        .scrollIntoView({ behavior: "smooth" });
+    })
+    .catch((error) => {
+      if (error.code === "auth/popup-closed-by-user") {
+        alert("Popup closed — try again when you're ready.");
+      } else {
+        console.error("Google sign-in error:", error.message);
+        alert("Sign-in failed: " + error.message);
+      }
+    });
+});
+
+signupBtn.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    alert("Please enter both email and password.");
+    return;
+  }
+
+  createUserWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      showWelcome(user);
+    })
+    .catch((error) => {
+      console.error("Sign up error:", error.message);
+      alert("Sign up failed: " + error.message);
+    });
+});
+
+loginBtn.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  const password = passwordInput.value;
+
+  if (!email || !password) {
+    alert("Please enter both email and password.");
+    return;
+  }
+
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
+      showWelcome(user);
+    })
+    .catch((error) => {
+      console.error("Login error:", error.message);
+      alert("Login failed: " + error.message);
+    });
+});
+
+logoutBtn.addEventListener("click", () => {
+  signOut(auth)
+    .then(() => {
+      console.log("Logged out successfully!");
+      showLogout();
+    })
+    .catch((error) => {
+      console.error("Logout error:", error.message);
+    });
+});
+
+function showLogout() {
+  const welcomeBanner = document.getElementById("welcomeBanner");
+  const userDisplay = document.getElementById("userDisplayName");
+
+  if (welcomeBanner && userDisplay) {
+    welcomeBanner.classList.add("hidden");
+    userDisplay.textContent = "";
+  }
+
+  // Show auth fields again
+  emailInput.classList.remove("hidden");
+  passwordInput.classList.remove("hidden");
+  signupBtn.classList.remove("hidden");
+  loginBtn.classList.remove("hidden");
+  googleBtn.classList.remove("hidden");
+  logoutBtn.classList.add("hidden");
+
+  alert("You have been logged out. God bless you today! ✨");
 }
 
 // === Save Journal Entry to localStorage ===
@@ -174,28 +320,45 @@ function loadJournalEntries() {
 
   entries.forEach(({ date, text }, index) => {
     entriesList.innerHTML += `
-      <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm">
-        <p class="text-gray-700 dark:text-gray-100 whitespace-pre-line">${text}</p>
-        <p class="text-sm text-right text-gray-500 mt-2">🗓️ ${date}</p>
+    <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm relative">
+      <p class="text-gray-700 dark:text-gray-100 whitespace-pre-line">${text}</p>
+      <p class="text-sm text-right text-gray-500 mt-2">🗓️ ${date}</p>
 
-        <div class="mt-4 flex justify-between items-center">
-          <button class="like-btn text-blue-500 hover:underline" data-index="${index}">
-            👍 Like (<span id="like-count-${index}">0</span>)
-          </button>
-          <button onclick="toggleComments(${index})" class="text-sm text-indigo-600">🔽 Show/Hide Comments</button>
-        </div>
+      <div class="mt-4 flex justify-between items-center">
+        <button class="like-btn text-blue-500 hover:underline" data-index="${index}">
+          👍 Like (<span id="like-count-${index}">0</span>)
+        </button>
+        <button onclick="toggleComments(${index})" class="text-sm text-indigo-600">
+          🔽 Show/Hide Comments
+        </button>
 
-        <div id="comments-section-${index}" class="mt-2 space-y-2">
-          <textarea id="comment-input-${index}" class="w-full p-2 border rounded mb-2" placeholder="Add a comment..."></textarea>
-          <div class="flex space-x-2 mb-2">
-            <button onclick="addEmoji('😊', ${index})" class="text-xl">😊</button>
-            <button onclick="addEmoji('🙏', ${index})" class="text-xl">🙏</button>
-            <button onclick="addEmoji('❤️', ${index})" class="text-xl">❤️</button>
-          </div>
-          <button class="comment-btn bg-blue-500 text-white px-4 py-1 rounded" data-index="${index}">💬 Post Comment</button>
-          <div id="comments-${index}" class="mt-2 space-y-2 text-sm text-gray-600"></div>
-        </div>
-      </div>`;
+        <!-- Delete button -->
+        <button class="delete-btn text-red-600 hover:text-red-800 ml-4" data-index="${index}">
+          🗑️ Delete
+        </button>
+      </div>
+
+      <div id="comments-section-${index}" class="mt-2 space-y-2 hidden">
+        <!-- Comment elements here -->
+      </div>
+    </div>
+  `;
+  });
+
+  // Add delete functionality
+  // Delete functionality
+  document.querySelectorAll(".delete-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = btn.dataset.index;
+      const entries = JSON.parse(localStorage.getItem("journalEntries")) || [];
+
+      // Confirm before deleting
+      if (confirm("Are you sure you want to delete this journal entry?")) {
+        entries.splice(index, 1); // remove the entry at index
+        localStorage.setItem("journalEntries", JSON.stringify(entries));
+        loadJournalEntries(); // refresh the list
+      }
+    });
   });
 
   // Like functionality
@@ -248,10 +411,71 @@ window.addEmojiToThought = function (emoji) {
   textarea.value += emoji;
 };
 
+function createFloatingWord(word) {
+  const el = document.createElement("span");
+  el.textContent = word;
+  el.className =
+    "absolute text-xl font-bold text-indigo-500 animate-float transition-opacity duration-1000";
+  el.style.left = Math.random() * window.innerWidth + "px";
+  el.style.top = window.innerHeight + "px";
+  el.style.opacity = Math.random();
+
+  document.getElementById("floatingWordsContainer").appendChild(el);
+
+  setTimeout(() => {
+    el.style.transform = `translateY(-${window.innerHeight + 100}px)`;
+    el.style.opacity = 0;
+  }, 100);
+
+  // Remove the element after animation
+  setTimeout(() => el.remove(), 7000);
+}
+
+// Floating words loop
+setInterval(() => {
+  const bibleWords = [
+    "Faith",
+    "Grace",
+    "Love",
+    "Peace",
+    "Jesus",
+    "Hope",
+    "Joy",
+    "Truth",
+  ];
+  const word = bibleWords[Math.floor(Math.random() * bibleWords.length)];
+  createFloatingWord(word);
+}, 2000);
+
 // === On Page Load ===
 window.addEventListener("DOMContentLoaded", () => {
   loadJournalEntries();
   loadVerseOfTheDay();
   loadDailyDevotional();
   loadThoughts();
+  createFloatingWord();
 });
+// === Theme Toggle ===
+const html = document.getElementById("html");
+const themeToggle = document.getElementById("themeToggle");
+
+if (themeToggle) {
+  themeToggle.addEventListener("click", () => {
+    html.classList.toggle("dark");
+
+    // Save preference to localStorage
+    if (html.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+    } else {
+      localStorage.setItem("theme", "light");
+    }
+  });
+
+  // Load saved preference on page load
+  const savedTheme = localStorage.getItem("theme");
+  if (savedTheme === "dark") {
+    html.classList.add("dark");
+  } else {
+    html.classList.remove("dark");
+  }
+}

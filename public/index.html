@@ -8,7 +8,36 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
     />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
 
+    <style>
+      @keyframes floatUp {
+        0% {
+          transform: translateY(100vh) scale(0.8);
+          opacity: 0;
+        }
+        50% {
+          opacity: 0.7;
+        }
+        100% {
+          transform: translateY(-10vh) scale(1.2);
+          opacity: 0;
+        }
+      }
+
+      .floating-word {
+        position: absolute;
+        animation: floatUp linear forwards;
+        font-weight: bold;
+        font-size: 1rem;
+        opacity: 0;
+        white-space: nowrap;
+        color: rgba(255, 255, 255, 0.15); /* subtle */
+      }
+    </style>
     <script defer src="script.js" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -16,6 +45,7 @@
     <link rel="icon" href="https://img.icons8.com/ios/452/open-book--v1.png" />
     <script>
       tailwind.config = {
+        darkMode: "class",
         theme: {
           extend: {
             animation: {
@@ -33,11 +63,19 @@
     </script>
   </head>
 
-  <body
-    class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen font-sans"
-  >
+  <body class="font-sans bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen" style="font-family: 'Proxima Nova', 'Inter', sans-serif;"></body>
     <header class="bg-indigo-700 text-white p-6 shadow-md">
       <h1 class="text-3xl font-bold text-center">📓 Kingdom Journal</h1>
+      <!-- Theme Toggle -->
+      <div class="mt-4 text-center">
+        <button
+          id="themeToggle"
+          class="bg-white text-gray-800 px-4 py-2 rounded shadow hover:bg-gray-200 dark:bg-gray-800 dark:text-white dark:hover:bg-gray-700 transition"
+        >
+          Toggle Theme 🌗
+        </button>
+      </div>
+
       <p class="text-center text-indigo-200">Write. Reflect. Worship.</p>
 
       <!-- 🔐 Auth Buttons -->
@@ -72,10 +110,15 @@
           </button>
           <button
             id="googleBtn"
-            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition"
+            class="bg-white text-gray-800 border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded shadow flex items-center gap-2"
           >
+            <img
+              src="https://img.icons8.com/color/16/google-logo.png"
+              alt="Google logo"
+            />
             Sign in with Google
           </button>
+
           <button
             id="logoutBtn"
             class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition hidden"
@@ -89,6 +132,20 @@
         </p>
       </section>
     </header>
+    <section
+      id="welcomeBanner"
+      class="max-w-2xl mx-auto mt-4 px-4 py-2 bg-green-100 text-green-800 rounded shadow hidden"
+    >
+      <div class="flex items-center justify-between">
+        <p id="userDisplayName" class="text-lg font-semibold">Welcome!</p>
+        <img
+          id="userPic"
+          src=""
+          alt="User"
+          class="w-8 h-8 rounded-full ml-2 hidden"
+        />
+      </div>
+    </section>
 
     <!-- Verse of the Day -->
     <section
@@ -187,5 +244,13 @@
     >
       Built with ❤️ for the Kingdom. All glory to God.
     </footer>
+
+    <!-- ✨ Floating Bible Words Container -->
+    <div
+      id="floatingWordsContainer"
+      class="pointer-events-none fixed top-0 left-0 w-full h-full overflow-hidden z-0"
+    >
+      <!-- Words will be inserted by script.js -->
+    </div>
   </body>
 </html>
