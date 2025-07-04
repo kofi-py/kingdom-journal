@@ -138,6 +138,11 @@ function loadThoughts() {
         <p class="text-sm text-right text-gray-500 mt-1">— ${name} on ${date}</p>
       </div>`;
   });
+
+  const lastThought = thoughtsList.firstElementChild;
+  if (lastThought) {
+    lastThought.classList.add("animate__animated", "animate__bounceIn");
+  }
 }
 
 // === Submit Devotional Thought ===

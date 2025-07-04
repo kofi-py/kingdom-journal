@@ -4,6 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Kingdom Journal</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+
     <script defer src="script.js" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
@@ -106,7 +111,7 @@
 
     <!-- Journal Entry Form -->
     <section
-      class="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl"
+      class="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl animate__animated animate__fadeInUp"
     >
       <h2 class="text-2xl font-semibold mb-4">📝 Your Journal</h2>
       <textarea
@@ -122,7 +127,7 @@
 
       <button
         id="saveBtn"
-        class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition duration-300"
+        class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition animate__animated animate__pulse animate__infinite"
       >
         Save Entry
       </button>
