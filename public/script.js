@@ -1,94 +1,245 @@
-const postForm = document.getElementById("postForm");
-const authForm = document.getElementById("authForm");
-const postsDiv = document.getElementById("posts");
+// === Firebase Setup ===
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithPopup,
+} from "https://www.gstatic.com/firebasejs/10.1.0/firebase-auth.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  getDocs,
+  deleteDoc,
+  doc,
+  updateDoc,
+  query,
+  where,
+  orderBy,
+  serverTimestamp,
+} from "https://www.gstatic.com/firebasejs/10.1.0/firebase-firestore.js";
 
-const API = "http://localhost:3000/api/posts"; // Adjust if needed
-let token = localStorage.getItem("token");
-
-// Handle Auth
-authForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const username = document.getElementById("username").value.trim();
-  const password = document.getElementById("password").value;
-
-  await fetch("http://localhost:3000/api/auth/signup", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-
-  const res = await fetch("http://localhost:3000/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-
-  const data = await res.json();
-  token = data.token;
-  localStorage.setItem("token", token);
-  loadPosts();
+const firebaseConfig = {
+  apiKey: "AIzaSyCWu9AAv-zsohJUFnfmEVHvcYdXP2KVToA",
+  authDomain: "kingdomjournal-4e15c.firebaseapp.com",
+  projectId: "kingdomjournal-4e15c",
+  storageBucket: "kingdomjournal-4e15c.appspot.com",
+  messagingSenderId: "543626332515",
+  appId: "1:543626332515:web:0a88d2ca71ade70a026b56",
 };
 
-// Handle Post
-postForm.onsubmit = async (e) => {
-  e.preventDefault();
-  const title = document.getElementById("title").value.trim();
-  const body = document.getElementById("body").value.trim();
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  await fetch(API, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify({ title, body }),
+// === DOM Elements ===
+const saveBtn = document.getElementById("saveBtn");
+const journalEntry = document.getElementById("journalEntry");
+const submitThought = document.getElementById("submitThought");
+const nameInput = document.getElementById("nameInput");
+const thoughtInput = document.getElementById("thoughtInput");
+const thoughtsList = document.getElementById("thoughtsList");
+
+// === Authentication Functions ===
+function typeWriterEffect(element, text, speed = 50) {
+  let i = 0;
+  element.textContent = "";
+  function type() {
+    if (i < text.length) {
+      element.textContent += text.charAt(i);
+      i++;
+      setTimeout(type, speed);
+    }
+  }
+  type();
+}
+
+// === Save Journal Entry to localStorage ===
+saveBtn.addEventListener("click", () => {
+  const content = journalEntry.value.trim();
+  if (!content) return alert("Please write something before saving!");
+
+  const entries = JSON.parse(localStorage.getItem("journalEntries")) || [];
+  entries.unshift({ date: new Date().toLocaleString(), text: content });
+  localStorage.setItem("journalEntries", JSON.stringify(entries));
+
+  journalEntry.value = "";
+  loadJournalEntries();
+});
+
+// === Load Verse of the Day ===
+async function loadVerseOfTheDay() {
+  const verseText = document.getElementById("verseText");
+  const verseRef = document.getElementById("verseRef");
+  const verses = [
+    "John 3:16",
+    "Psalm 23:1",
+    "Romans 8:28",
+    "Proverbs 3:5-6",
+    "Isaiah 41:10",
+    "Philippians 4:13",
+    "Joshua 1:9",
+    "Galatians 2:20",
+  ];
+
+  const day = Math.floor(
+    (new Date() - new Date(new Date().getFullYear(), 0, 0)) /
+      (1000 * 60 * 60 * 24)
+  );
+  const ref = verses[day % verses.length];
+
+  try {
+    const res = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}`);
+    const data = await res.json();
+    verseText.textContent = `"${data.text.trim()}"`;
+    typeWriterEffect(verseText, verseText.textContent);
+    verseRef.textContent = `— ${data.reference}`;
+  } catch {
+    verseText.textContent = "Could not load verse 😔";
+  }
+}
+
+// === Load Daily Devotional ===
+function loadDailyDevotional() {
+  const devotionals = [
+    "Trust in the Lord... (Proverbs 3:5)",
+    "God’s grace is sufficient (2 Cor 12:9)",
+    "Be still and know (Psalm 46:10)",
+    "Rejoice, pray, give thanks (1 Thess 5:16-18)",
+    "Cast your cares (1 Peter 5:7)",
+  ];
+  const index =
+    Math.floor(
+      (new Date() - new Date(new Date().getFullYear(), 0, 0)) /
+        (1000 * 60 * 60 * 24)
+    ) % devotionals.length;
+  document.getElementById("devotionalText").textContent = devotionals[index];
+}
+
+// === Load Devotional Thoughts ===
+function loadThoughts() {
+  const thoughts = JSON.parse(localStorage.getItem("devotionalThoughts")) || [];
+  thoughtsList.innerHTML = "";
+  thoughts.forEach(({ name, thought, date }) => {
+    thoughtsList.innerHTML += `
+      <div class="bg-gray-100 p-3 rounded shadow-sm" animate-fadeIn>
+        <p class="text-gray-700">"${thought}"</p>
+        <p class="text-sm text-right text-gray-500 mt-1">— ${name} on ${date}</p>
+      </div>`;
+  });
+}
+
+// === Submit Devotional Thought ===
+submitThought.addEventListener("click", () => {
+  const name = nameInput.value.trim();
+  const thought = thoughtInput.value.trim();
+  if (!name || !thought) return alert("Please fill in both fields.");
+
+  const newThought = { name, thought, date: new Date().toLocaleDateString() };
+  const thoughts = JSON.parse(localStorage.getItem("devotionalThoughts")) || [];
+  thoughts.unshift(newThought);
+  localStorage.setItem("devotionalThoughts", JSON.stringify(thoughts));
+
+  nameInput.value = "";
+  thoughtInput.value = "";
+  loadThoughts();
+});
+
+// === Load Journal Entries ===
+function loadJournalEntries() {
+  const entries = JSON.parse(localStorage.getItem("journalEntries")) || [];
+  const entriesList = document.getElementById("entriesList");
+  entriesList.innerHTML = "";
+
+  if (!entries.length) {
+    entriesList.innerHTML = `<p class='text-gray-500 italic'>No entries yet.</p>`;
+    return;
+  }
+
+  entries.forEach(({ date, text }, index) => {
+    entriesList.innerHTML += `
+      <div class="bg-white dark:bg-gray-800 p-4 rounded shadow-sm">
+        <p class="text-gray-700 dark:text-gray-100 whitespace-pre-line">${text}</p>
+        <p class="text-sm text-right text-gray-500 mt-2">🗓️ ${date}</p>
+
+        <div class="mt-4 flex justify-between items-center">
+          <button class="like-btn text-blue-500 hover:underline" data-index="${index}">
+            👍 Like (<span id="like-count-${index}">0</span>)
+          </button>
+          <button onclick="toggleComments(${index})" class="text-sm text-indigo-600">🔽 Show/Hide Comments</button>
+        </div>
+
+        <div id="comments-section-${index}" class="mt-2 space-y-2">
+          <textarea id="comment-input-${index}" class="w-full p-2 border rounded mb-2" placeholder="Add a comment..."></textarea>
+          <div class="flex space-x-2 mb-2">
+            <button onclick="addEmoji('😊', ${index})" class="text-xl">😊</button>
+            <button onclick="addEmoji('🙏', ${index})" class="text-xl">🙏</button>
+            <button onclick="addEmoji('❤️', ${index})" class="text-xl">❤️</button>
+          </div>
+          <button class="comment-btn bg-blue-500 text-white px-4 py-1 rounded" data-index="${index}">💬 Post Comment</button>
+          <div id="comments-${index}" class="mt-2 space-y-2 text-sm text-gray-600"></div>
+        </div>
+      </div>`;
   });
 
-  postForm.reset();
-  loadPosts();
-};
-
-// Handle Delete
-const deletePost = async (id) => {
-  await fetch(`${API}/${id}`, {
-    method: "DELETE",
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+  // Like functionality
+  document.querySelectorAll(".like-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = btn.dataset.index;
+      const count = document.getElementById(`like-count-${index}`);
+      count.textContent = parseInt(count.textContent) + 1;
+    });
   });
-  loadPosts();
-};
 
-// Logout
-const logout = () => {
-  token = null;
-  localStorage.removeItem("token");
-  loadPosts();
-};
-
-// Load Posts
-const loadPosts = async () => {
-  const res = await fetch(API);
-  const posts = await res.json();
-
-  postsDiv.innerHTML = posts
-    .map(
-      (post) => `
-    <div class="bg-white shadow rounded-lg p-6">
-      <h3 class="text-xl font-semibold text-indigo-700 mb-2">${post.title}</h3>
-      <p class="text-gray-700 mb-4 whitespace-pre-line">${post.body}</p>
-      <p class="text-sm text-gray-500 italic">Posted on ${new Date(
-        post.createdAt
-      ).toLocaleString()}</p>
-      ${
-        token
-          ? `<button onclick="deletePost(${post.id})" class="mt-3 inline-block bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">Delete</button>`
-          : ""
+  // Comment functionality
+  document.querySelectorAll(".comment-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = btn.dataset.index;
+      const input = document.getElementById(`comment-input-${index}`);
+      const commentsDiv = document.getElementById(`comments-${index}`);
+      const comment = input.value.trim();
+      if (comment) {
+        commentsDiv.innerHTML += `<p class="bg-gray-200 p-2 rounded">${comment}</p>`;
+        input.value = "";
       }
-    </div>
-  `
-    )
-    .join("");
+    });
+  });
+}
+
+// === Toggle Comments Section ===
+window.toggleComments = (index) => {
+  const section = document.getElementById(`comments-section-${index}`);
+  section.classList.toggle("hidden");
 };
 
-loadPosts();
+// === Add Emoji to Comment ===
+window.addEmoji = (emoji, index) => {
+  const input = document.getElementById(`comment-input-${index}`);
+  if (input) {
+    input.value += emoji;
+    input.focus();
+  }
+};
+
+// 😊 Emoji Support Functions
+window.addEmojiToJournal = function (emoji) {
+  const textarea = document.getElementById("journalEntry");
+  textarea.value += emoji;
+};
+
+window.addEmojiToThought = function (emoji) {
+  const textarea = document.getElementById("thoughtInput");
+  textarea.value += emoji;
+};
+
+// === On Page Load ===
+window.addEventListener("DOMContentLoaded", () => {
+  loadJournalEntries();
+  loadVerseOfTheDay();
+  loadDailyDevotional();
+  loadThoughts();
+});

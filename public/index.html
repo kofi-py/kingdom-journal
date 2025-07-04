@@ -1,86 +1,184 @@
 <!DOCTYPE html>
-<html lang="en" class="bg-gray-100 text-gray-800">
+<html id="html" lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kofi’s Kingdom Journal</title>
+    <title>Kingdom Journal</title>
+    <script defer src="script.js" type="module"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" href="https://img.icons8.com/ios/452/open-book--v1.png" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            animation: {
+              fadeIn: "fadeIn 0.5s ease-in-out",
+            },
+            keyframes: {
+              fadeIn: {
+                "0%": { opacity: "0", transform: "translateY(10px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
   </head>
-  <body class="min-h-screen flex flex-col items-center py-10 px-4">
-    <!-- Header -->
-    <header class="w-full max-w-3xl text-center mb-8">
-      <h1 class="text-4xl font-bold text-indigo-700 mb-2">
-        ✝️ Kofi's Kingdom Journal
-      </h1>
-      <p class="text-lg text-gray-600">
-        Write your devotions. Reflect on His goodness.
-      </p>
-    </header>
 
-    <!-- Auth Form -->
-    <section class="w-full max-w-md bg-white shadow-md rounded-lg p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">Login / Signup</h2>
-      <form id="authForm" class="space-y-4">
-        <input
-          type="text"
-          id="username"
-          placeholder="Username"
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-        <input
-          type="password"
-          id="password"
-          placeholder="Password"
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400"
-        />
-        <div class="flex justify-between items-center">
+  <body
+    class="bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100 min-h-screen font-sans"
+  >
+    <header class="bg-indigo-700 text-white p-6 shadow-md">
+      <h1 class="text-3xl font-bold text-center">📓 Kingdom Journal</h1>
+      <p class="text-center text-indigo-200">Write. Reflect. Worship.</p>
+
+      <!-- 🔐 Auth Buttons -->
+      <section class="max-w-2xl mx-auto mt-6 px-4 text-center space-y-2">
+        <div class="flex justify-center flex-wrap gap-4">
+          <input
+            id="email"
+            type="email"
+            placeholder="Email"
+            class="p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm"
+          />
+          <input
+            id="password"
+            type="password"
+            placeholder="Password"
+            class="p-2 rounded border dark:bg-gray-800 dark:border-gray-600 text-sm"
+          />
+        </div>
+
+        <div class="flex justify-center gap-3 mt-3 flex-wrap">
           <button
-            type="submit"
-            class="bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700 transition"
+            id="signupBtn"
+            class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded transition"
           >
-            Submit
+            Sign Up
           </button>
           <button
-            type="button"
-            onclick="logout()"
-            class="text-red-500 hover:underline text-sm"
+            id="loginBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition"
           >
-            Logout
+            Log In
+          </button>
+          <button
+            id="googleBtn"
+            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded transition"
+          >
+            Sign in with Google
+          </button>
+          <button
+            id="logoutBtn"
+            class="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded transition hidden"
+          >
+            Log Out
           </button>
         </div>
-      </form>
+
+        <p id="errorMsg" class="text-red-500 font-semibold mt-2 hidden">
+          Error message will appear here
+        </p>
+      </section>
+    </header>
+
+    <!-- Verse of the Day -->
+    <section
+      class="max-w-3xl mx-auto mt-6 bg-gradient-to-br from-indigo-600 to-purple-700 text-white p-6 rounded-xl shadow-lg"
+    >
+      <h2 class="text-2xl font-bold">📖 Verse of the Day</h2>
+      <p id="verseText" class="mt-2 italic text-lg animate-fadeIn">
+        Loading...
+      </p>
+      <p id="verseRef" class="text-sm text-indigo-200"></p>
     </section>
 
-    <!-- Post Form -->
-    <section class="w-full max-w-2xl bg-white shadow-md rounded-lg p-6 mb-6">
-      <h2 class="text-xl font-semibold text-gray-700 mb-4">New Devotional</h2>
-      <form id="postForm" class="space-y-4">
-        <input
-          type="text"
-          id="title"
-          placeholder="Title"
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-        />
-        <textarea
-          id="body"
-          rows="4"
-          placeholder="Write your devotional here..."
-          class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-        ></textarea>
-        <button
-          type="submit"
-          class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-        >
-          Publish
-        </button>
-      </form>
+    <!-- Devotional -->
+    <section
+      class="max-w-3xl mx-auto mt-4 bg-yellow-100 text-yellow-900 p-5 rounded-xl shadow-md"
+    >
+      <h2 class="text-xl font-semibold">🕊️ Daily Devotional</h2>
+      <p id="devotionalText" class="mt-2 italic">Loading...</p>
     </section>
 
-    <!-- Posts Section -->
-    <section id="posts" class="w-full max-w-3xl space-y-6">
-      <!-- Posts will be injected by JS -->
+    <!-- Journal Entry Form -->
+    <section
+      class="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-xl"
+    >
+      <h2 class="text-2xl font-semibold mb-4">📝 Your Journal</h2>
+      <textarea
+        id="journalEntry"
+        class="w-full h-32 p-4 rounded-lg border dark:border-gray-700 dark:bg-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none"
+        placeholder="Pour out your heart to the Lord..."
+      ></textarea>
+      <div class="flex space-x-2 mt-2">
+        <button onclick="addEmojiToJournal('😊')" class="text-xl">😊</button>
+        <button onclick="addEmojiToJournal('🙏')" class="text-xl">🙏</button>
+        <button onclick="addEmojiToJournal('❤️')" class="text-xl">❤️</button>
+      </div>
+
+      <button
+        id="saveBtn"
+        class="mt-4 bg-indigo-600 text-white px-6 py-2 rounded hover:bg-indigo-700 transition duration-300"
+      >
+        Save Entry
+      </button>
     </section>
 
-    <script src="script.js"></script>
+    <!-- Entries Display -->
+    <section class="max-w-2xl mx-auto mt-10 px-4">
+      <h2 class="text-xl font-semibold mb-4 text-center">
+        📘 Previous Entries
+      </h2>
+      <div id="entriesList" class="space-y-6">
+        <!-- Entries inserted here -->
+      </div>
+    </section>
+
+    <!-- Devotional Thoughts -->
+    <section
+      class="max-w-2xl mx-auto mt-10 bg-white dark:bg-gray-800 p-6 rounded-xl shadow"
+    >
+      <h2 class="text-2xl font-semibold">💬 Share Your Thoughts</h2>
+      <input
+        type="text"
+        id="nameInput"
+        placeholder="Your name"
+        class="w-full p-2 mt-2 rounded border dark:bg-gray-900 dark:border-gray-700 mb-2"
+      />
+      <textarea
+        id="thoughtInput"
+        rows="3"
+        placeholder="Your reflection..."
+        class="w-full p-3 rounded border dark:bg-gray-900 dark:border-gray-700"
+      ></textarea>
+      <div class="flex space-x-2 mt-2">
+        <button onclick="addEmojiToThought('😊')" class="text-xl">😊</button>
+        <button onclick="addEmojiToThought('🙏')" class="text-xl">🙏</button>
+        <button onclick="addEmojiToThought('❤️')" class="text-xl">❤️</button>
+      </div>
+
+      <button
+        id="submitThought"
+        class="mt-3 bg-green-600 text-white px-5 py-2 rounded hover:bg-green-700 transition"
+      >
+        Submit
+      </button>
+    </section>
+
+    <section class="max-w-2xl mx-auto mt-6 px-4">
+      <h3 class="text-lg font-semibold mb-2">🧠 Devotional Reflections</h3>
+      <div id="thoughtsList" class="space-y-4">
+        <!-- Thoughts inserted here -->
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer
+      class="text-center text-sm text-gray-500 dark:text-gray-400 mt-12 p-4"
+    >
+      Built with ❤️ for the Kingdom. All glory to God.
+    </footer>
   </body>
 </html>
